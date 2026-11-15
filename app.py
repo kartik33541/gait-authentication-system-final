@@ -13,19 +13,56 @@ for _path in (PROD_PATH, APP_PATH):
 try:
     import spaces
 except ImportError:
-    # Local fallback mockup if running outside Hugging Face ZeroGPU
     class _MockSpaces:
         @staticmethod
         def GPU(fn):
             return fn
     spaces = _MockSpaces()
 
+from fastapi import FastAPI, Request
+from starlette.responses import Response
 import gradio as gr
+import uvicorn
 from flask_server import app as flask_app  # noqa: E402
 from firestore_service import get_firestore_service  # noqa: E402
 
+# Initialize primary FastAPI ASGI gateway
+app = FastAPI(title="GaitAuth ZeroGPU Engine")
+flask_client = flask_app.test_client()
 
-# Function decorated with @spaces.GPU bound directly to Gradio UI handler
+# Universal zero-overhead proxy for all Flask endpoints
+@app.api_route("/api/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"], include_in_schema=False)
+@app.api_route("/predict", methods=["GET", "POST", "OPTIONS"], include_in_schema=False)
+@app.api_route("/predict/", methods=["GET", "POST", "OPTIONS"], include_in_schema=False)
+async def forward_to_flask(request: Request):
+    if request.method == "OPTIONS":
+        return Response(status_code=200, headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "*"
+        })
+    body = await request.body()
+    url_path = request.url.path.rstrip("/") or "/"
+    query_string = request.url.query
+    headers = {k: v for k, v in request.headers.items() if k.lower() not in ("host", "content-length")}
+    
+    resp = flask_client.open(
+        url_path,
+        method=request.method,
+        headers=headers,
+        data=body,
+        query_string=query_string
+    )
+    res_headers = dict(resp.headers)
+    res_headers["Access-Control-Allow-Origin"] = "*"
+    res_headers["Access-Control-Allow-Headers"] = "*"
+    return Response(
+        content=resp.get_data(),
+        status_code=resp.status_code,
+        headers=res_headers
+    )
+
+# ZeroGPU diagnostic function bound to Gradio UI
 @spaces.GPU
 def check_biometric_engine(command: str = "status"):
     fs = get_firestore_service()
@@ -44,8 +81,6 @@ def check_biometric_engine(command: str = "status"):
   - `GET /api/health` (Cloud Health & Latency Diagnostics)
 """
 
-
-# Gradio Blocks UI definition
 with gr.Blocks(title="GaitAuth Biometric Engine", theme=gr.themes.Soft()) as demo:
     gr.Markdown("# 🚶 GaitAuth Biometric Intelligence Engine")
     gr.Markdown("Enterprise Zero-Trust Continuous Biometric Authentication Server running on Hugging Face Spaces.")
@@ -54,47 +89,18 @@ with gr.Blocks(title="GaitAuth Biometric Engine", theme=gr.themes.Soft()) as dem
     refresh_btn = gr.Button("🔄 Refresh ZeroGPU Status", variant="primary")
     refresh_btn.click(fn=check_biometric_engine, inputs=cmd_input, outputs=status_output)
 
+# Mount Gradio app onto FastAPI root path
+app = gr.mount_gradio_app(app, demo, path="/")
 
 if __name__ == "__main__":
-    from starlette.requests import Request
-    from starlette.responses import Response
-
     port = int(os.getenv("PORT", 7860))
-    print(f"🚀 [GaitAuth ZeroGPU Server] Launching on port {port}...")
-    server_app, _, _ = demo.launch(server_name="0.0.0.0", server_port=port, prevent_thread_lock=True)
+    print(f"🚀 [GaitAuth ZeroGPU Server] Starting ASGI server on port {port}...")
+    try:
+        from spaces import zero as _spaces_zero
+        if hasattr(_spaces_zero, "startup"):
+            _spaces_zero.startup()
+            print("[ZeroGPU] spaces.zero.startup() successfully executed.", flush=True)
+    except Exception as error:
+        print(f"[ZeroGPU] Startup hook note: {error!r}", flush=True)
 
-    flask_client = flask_app.test_client()
-
-    @server_app.api_route("/api/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"], include_in_schema=False)
-    @server_app.api_route("/predict", methods=["GET", "POST", "OPTIONS"], include_in_schema=False)
-    @server_app.api_route("/predict/", methods=["GET", "POST", "OPTIONS"], include_in_schema=False)
-    async def forward_to_flask(request: Request):
-        if request.method == "OPTIONS":
-            return Response(status_code=200, headers={
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                "Access-Control-Allow-Headers": "*"
-            })
-        body = await request.body()
-        url_path = request.url.path.rstrip("/") or "/"
-        query_string = request.url.query
-        headers = {k: v for k, v in request.headers.items() if k.lower() not in ("host", "content-length")}
-        
-        resp = flask_client.open(
-            url_path,
-            method=request.method,
-            headers=headers,
-            data=body,
-            query_string=query_string
-        )
-        res_headers = dict(resp.headers)
-        res_headers["Access-Control-Allow-Origin"] = "*"
-        res_headers["Access-Control-Allow-Headers"] = "*"
-        return Response(
-            content=resp.get_data(),
-            status_code=resp.status_code,
-            headers=res_headers
-        )
-
-    print("✅ [GaitAuth ZeroGPU Server] Direct REST API Bridge mounted.")
-    demo.block_thread()
+    uvicorn.run(app, host="0.0.0.0", port=port)

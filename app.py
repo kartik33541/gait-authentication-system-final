@@ -1,6 +1,9 @@
 import os
 import sys
 
+# Disable Gradio SSR to avoid port collision with Uvicorn on Hugging Face Spaces
+os.environ["GRADIO_SSR_MODE"] = "false"
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROD_PATH = os.path.join(BASE_DIR, "production")
 APP_PATH = os.path.join(PROD_PATH, "app")
@@ -93,7 +96,7 @@ with gr.Blocks(title="GaitAuth Biometric Engine", theme=gr.themes.Soft()) as dem
 app = gr.mount_gradio_app(app, demo, path="/")
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 7860))
+    port = 7860
     print(f"🚀 [GaitAuth ZeroGPU Server] Starting ASGI server on port {port}...")
     try:
         from spaces import zero as _spaces_zero

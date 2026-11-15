@@ -34,6 +34,7 @@ from gait_analyzer import (
     diagnose_gait_pattern,
     build_fallback_explanation,
     get_azure_openai_config,
+    get_ai_provider_info,
 )
 from firestore_service import get_firestore_service
 
@@ -955,13 +956,12 @@ def enroll_employee():
 
 @app.route("/api/health", methods=["GET"])
 def health_check():
-    llm_cfg = get_azure_openai_config()
     fs_health = FIRESTORE_SERVICE.health_status()
     return jsonify({
         "status": "ONLINE",
         "service": "Gait Biometric Engine",
         "model": "Siamese_LSTM_256D",
-        "llm_provider": f"Azure_OpenAI_{llm_cfg['deployment']}" if llm_cfg["is_configured"] else "Fallback",
+        "llm_provider": get_ai_provider_info(),
         "vault_backend": fs_health["vault_backend"],
         "firestore_configured": fs_health["configured"],
         "firebase_project": fs_health["project_id"],

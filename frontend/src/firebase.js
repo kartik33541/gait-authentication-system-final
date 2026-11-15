@@ -3,12 +3,12 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD-HP2996jqKifjVjatRH7781-2M6OOanw",
-  authDomain: "vocalnav.firebaseapp.com",
-  projectId: "vocalnav",
-  storageBucket: "vocalnav.firebasestorage.app",
-  messagingSenderId: "710232766048",
-  appId: "1:710232766048:web:eac8a04fc3a8a5477ef505"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "vocalnav.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "vocalnav",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "vocalnav.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "710232766048",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:710232766048:web:eac8a04fc3a8a5477ef505"
 };
 
 const app = initializeApp(firebaseConfig);

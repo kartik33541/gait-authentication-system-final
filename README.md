@@ -1,3 +1,14 @@
+---
+title: Gaitauth Backend
+emoji: 🚶
+colorFrom: indigo
+colorTo: blue
+sdk: gradio
+sdk_version: 5.20.0
+app_file: app.py
+pinned: false
+---
+
 # 🛡️ GaitAuth: Enterprise Continuous Biometric Authentication Platform
 
 [![Vercel Deployment](https://img.shields.io/badge/Frontend-Vercel%20SPA-black?style=for-the-badge&logo=vercel)](https://vercel.com)

@@ -17,6 +17,10 @@ env/
 # Environment Secrets
 # ===============================
 .env
+secrets/
+*firebase-adminsdk*.json
+*serviceAccount*.json
+serviceAccountKey.json
 
 # ===============================
 # IDE / Editor Settings

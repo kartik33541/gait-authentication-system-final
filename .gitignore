@@ -1,0 +1,40 @@
+# Environments & Secret Keys
+.env
+*.env
+.env.*
+!.env.example
+DEPLOYED_BACKEND_AUDIT.md
+*firebase-adminsdk*.json
+*serviceAccount*.json
+serviceAccountKey.json
+production/secrets/
+
+# Legacy and Scratch Archives
+legacy/
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.bak
+*.tmp
+
+# Virtual Environments & Dependencies
+.venv/
+venv/
+env/
+node_modules/
+**/node_modules/
+__pycache__/
+*.pyc
+*.pyo
+
+# Build & Runtime Artifacts
+dist/
+**/dist/
+production/received_gait.csv
+production/received_gait_*.csv
+*.log
+.DS_Store
+Thumbs.db
+

@@ -4,10 +4,9 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import tensorflow.keras.backend as K
-from sklearn.preprocessing import StandardScaler
 
 # Import our exact preprocessing pipeline and architecture
-from dataset_loader import extract_windows
+from dataset_loader import extract_windows, load_scaler
 from build_encoder import get_encoder
 
 # ==========================================
@@ -81,7 +80,7 @@ def process_live_login(claimed_identity, live_csv_path):
     # 3. Read and Clean the Live Walk
     try:
         df = pd.read_csv(live_csv_path)
-        scaler = StandardScaler()
+        scaler = load_scaler()
         # Uses the format exactly matched to your local dataset_loader
         windows = extract_windows(df, scaler)
     except Exception as e:

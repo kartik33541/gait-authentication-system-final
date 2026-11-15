@@ -74,7 +74,7 @@ MAX_AGE_MS = 300000
 app = Flask(__name__)
 _ENCODER_LOCK = threading.Lock()
 
-_raw_allowed_origins = (os.getenv("ALLOWED_ORIGINS") or "http://localhost:5173,http://127.0.0.1:5173").strip()
+_raw_allowed_origins = (os.getenv("ALLOWED_ORIGINS") or "*").strip()
 if _raw_allowed_origins == "*":
     ALLOWED_ORIGINS = "*"
 else:
@@ -612,6 +612,43 @@ def _score_1to1_walk(embeddings, unit_templates, threshold):
 
 
 # ================= ROUTE =================
+@app.route("/", methods=["GET"])
+def index():
+    return """<!DOCTYPE html>
+<html>
+<head>
+    <title>GaitAuth Biometric Engine</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background: #0b0f19; color: #f8fafc; text-align: center; padding: 60px 20px; }
+        .card { max-width: 640px; margin: 0 auto; background: #131b2e; border: 1px solid #1e293b; border-radius: 16px; padding: 36px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+        h1 { color: #38bdf8; font-size: 26px; margin: 12px 0; }
+        p { color: #94a3b8; font-size: 15px; line-height: 1.6; }
+        .badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #34d399; padding: 6px 14px; border-radius: 9999px; font-weight: bold; font-size: 13px; }
+        .dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981; }
+        .endpoints { text-align: left; background: #0b0f19; border: 1px solid #1e293b; padding: 20px 24px; border-radius: 10px; margin-top: 24px; font-family: monospace; font-size: 13px; color: #7dd3fc; }
+        .method { color: #34d399; font-weight: bold; }
+        .method-get { color: #60a5fa; font-weight: bold; }
+        li { margin: 8px 0; list-style: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="badge"><div class="dot"></div> ML BACKEND ONLINE</div>
+        <h1>🚶 GaitAuth Biometric Intelligence Engine</h1>
+        <p>Enterprise Zero-Trust Continuous Biometric Authentication Server running on Cloud Infrastructure.</p>
+        <div class="endpoints">
+            <ul>
+                <li><span class="method">POST</span> /predict &mdash; Siamese LSTM 1:1 Verification</li>
+                <li><span class="method">POST</span> /api/enroll &mdash; Biometric Template Enrollment</li>
+                <li><span class="method">POST</span> /api/send-invite &mdash; Automated Passkey Dispatch</li>
+                <li><span class="method-get">GET</span>  /api/health &mdash; Real-Time Diagnostics</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>"""
+
+
 @app.route("/predict", methods=["POST", "OPTIONS"])
 def predict():
     if request.method == "OPTIONS":

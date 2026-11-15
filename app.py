@@ -70,14 +70,16 @@ with gr.Blocks(title="GaitAuth Biometric Engine", theme=gr.themes.Soft()) as dem
     refresh_btn.click(fn=check_biometric_engine, inputs=cmd_input, outputs=status_output)
 
 
-# Initialize Gradio FastAPI app and mount Flask WSGI endpoints directly onto it
-app = gr.routes.App.create_app(demo)
+# Mount Flask WSGI endpoints directly onto Gradio's internal FastAPI app
 wrapped_flask = FullPathWSGIWrapper(flask_app)
-app.mount("/api", WSGIMiddleware(wrapped_flask))
-app.mount("/predict", WSGIMiddleware(wrapped_flask))
+demo.app.mount("/api", WSGIMiddleware(wrapped_flask))
+demo.app.mount("/predict", WSGIMiddleware(wrapped_flask))
 
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 7860))
     print(f"🚀 [GaitAuth ZeroGPU Server] Launching on port {port}...")
-    demo.launch(server_name="0.0.0.0", server_port=port, _app=app)
+    try:
+        demo.launch(server_name="0.0.0.0", server_port=port, ssr_mode=False)
+    except TypeError:
+        demo.launch(server_name="0.0.0.0", server_port=port)
